@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sql_bloc/sqlDataView/bloc/sqlState.dart';
 
+import '../Model/ModelClass.dart';
 import 'bloc/sqlBloc.dart';
+import 'bloc/sqlEvent.dart';
 
 class SqlAllDbView extends StatefulWidget {
   const SqlAllDbView({Key? key}) : super(key: key);
@@ -14,66 +16,52 @@ class SqlAllDbView extends StatefulWidget {
 class _SqlAllDbViewState extends State<SqlAllDbView> {
   @override
   Widget build(BuildContext context) {
+    final bloc = BlocProvider.of<SqlBloc>(context, listen: false);
     return Scaffold(
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            sqlForm();
-          },
-        ),
         body: BlocConsumer<SqlBloc, SqlStates>(
-          listener: (BuildContext context, Object? state) {},
-          builder: (BuildContext context, state) {
-            return ListView.builder(
-                itemCount: 30,
+      listener: (context, state) {
+        bloc.add(SqlInsertEvent(row: {}));
+        if (state is SqlInitialState) {
+          bloc.add(SqlInsertEvent(row: {}));
+        } else {}
+      },
+      builder: (BuildContext context, state) {
+        return bloc.entrieNewList.isEmpty
+            ? ListView.builder(
+                itemCount: bloc.entrieNewList.length,
                 itemBuilder: (_, index) {
-                  return sqlTill(editTap: () {}, deleteTap: () {});
+                  return sqlTill(
+                    index: index,
+                    entriesList: bloc.entrieNewList,
+                  );
+                })
+            : ListView.builder(
+                itemCount: bloc.entrieNewList.length,
+                itemBuilder: (_, index) {
+                  return sqlTill(
+                    index: index,
+                    entriesList: bloc.entrieNewList,
+                  );
                 });
-          },
-        ));
+      },
+    ));
   }
 
-  Widget sqlTill({required Function() editTap, required Function() deleteTap}) {
+  Widget sqlTill({required int index, required List<Entries> entriesList}) {
     return Container(
-      color: Colors.blue,
+      color: Colors.grey,
       height: 100,
       width: double.infinity,
       margin: const EdgeInsets.all(8),
       padding: const EdgeInsets.all(8),
       child: Row(
         children: [
-          const Text(
-            "title",
-            style: TextStyle(color: Colors.red),
+          Text(
+            "${entriesList[index].aPI}",
+            style: const TextStyle(color: Colors.red),
           ),
-          const Spacer(),
-          IconButton(onPressed: editTap, icon: const Icon(Icons.edit)),
-          IconButton(onPressed: deleteTap, icon: const Icon(Icons.delete)),
         ],
       ),
-    );
-  }
-
-  Future sqlForm() {
-    return showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Wrap(
-          children: const [
-            ListTile(
-              leading: Icon(Icons.share),
-              title: Text('Share'),
-            ),
-            ListTile(
-              leading: Icon(Icons.copy),
-              title: Text('Copy Link'),
-            ),
-            ListTile(
-              leading: Icon(Icons.edit),
-              title: Text('Edit'),
-            ),
-          ],
-        );
-      },
     );
   }
 }
